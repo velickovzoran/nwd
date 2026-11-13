@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>My Exam Prep Page</title>
+        <meta charset="UTF-8">
+
+        <style>
+            .karticka {
+                background: coral;
+                padding: 5px;
+                margin: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Препораки за ТВ Серии</h1>
+        <button id="load-shows">Вчитај серии</button>
+        
+        <label for="min-rating">Минимална оцена</label>
+        <select id="min-rating">
+            <option value="0" selected>0</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+        </select>
+        <p>Број на жанрови <span id="genre-count">0</span></p>
+        <p>Различни серии <span id="show-count">0</span></p>
+
+        <div id="results">
+
+        </div>
+
+        <script>
+            const kopce = document.getElementById("load-shows");
+            const select = document.getElementById("min-rating");
+            const mapa = new Map();
+            let serii = null;
+
+            async function vcitaj() {
+
+                const [a, b] = await Promise.all([
+                    fetch("https://api.tvmaze.com/search/shows?q=star%20trek").then(response => response.json()),
+                    fetch("https://api.tvmaze.com/search/shows?q=trek").then(response => response.json())
+                ])
+
+                console.log(a, b);
+
+                for(const lista of [a, b]){
+                    for (const element of lista){
+                        const id = element.show.id;
+                        const star = mapa.get(id);
+
+                        if (!star || element.score > star.score) {
+                            mapa.set(id, element);
+                        }
+                    }
+                }
+
+                console.log(mapa.size);
+
+                serii = [...mapa.values()].map(z => z.show);
+
+                prikazi();
+            }
+
+            function prikazi() {
+                if (!serii) return;
+
+                const filtrirani = serii.filter(s =>
+                        s.genres.length > 0 &&
+                        s.rating["average"] !== null &&
+                        s.rating["average"] >= Number(select.value)
+                    );
+
+                console.log(filtrirani.length);
+
+                const zanrovi = new Map();
+
+                for (const serija of filtrirani){
+                    for (const zanr of serija.genres){
+                        if (!zanrovi.has(zanr)){
+                            zanrovi.set(zanr, []);
+                        }
+                        zanrovi.get(zanr).push(serija);
+                    }
+                }
+
+                console.log(zanrovi.size);
+                console.log(zanrovi.get("Drama"));
+
+                const kontejner = document.getElementById("results");
+                kontejner.innerHTML = "";
+
+                const genreNames = [...zanrovi.keys()].sort();
+
+                for (const zanr of genreNames) {
+                    const lista = zanrovi.get(zanr);
+
+                    const kolona = document.createElement("div");
+                    const naslov = document.createElement("h2");
+                    naslov.textContent = zanr;
+                    kolona.appendChild(naslov)
+
+                    for (const s of lista) {
+                        const k = document.createElement("div");
+                        k.className = "karticka";
+
+                        const ime = document.createElement("strong");
+                        ime.textContent = s.name;
+                        k.appendChild(ime);
+
+                        const ocena = document.createElement("div");
+                        ocena.textContent = "Ocena " + s.rating["average"];
+                        k.appendChild(ocena)
+
+                        kolona.appendChild(k)
+                    }
+
+                    kontejner.appendChild(kolona);
+                }
+
+                const brojZanrovi = document.getElementById("genre-count");
+                const brojSerii = document.getElementById("show-count");
+
+                brojZanrovi.innerText = zanrovi.size;
+                brojSerii.innerText = filtrirani.length;
+            }
+
+            kopce.addEventListener("click", vcitaj);
+            select.addEventListener("change", prikazi);
+
+        </script>
+
+    </body>
+</html>
