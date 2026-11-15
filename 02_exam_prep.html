@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Second Example</title>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <script>
+            const skopjeUrl = "https://archive-api.open-meteo.com/v1/archive?latitude=41.9981&longitude=21.4254&start_date=2025-06-15&end_date=2025-06-15&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=UTC";
+            const ohridUrl = "https://archive-api.open-meteo.com/v1/archive?latitude=41.1172&longitude=20.8016&start_date=2025-06-15&end_date=2025-06-15&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=UTC";
+            const bitolaUrl = "https://archive-api.open-meteo.com/v1/archive?latitude=41.0314&longitude=21.3347&start_date=2025-06-15&end_date=2025-06-15&hourly=temperature_2m,precipitation,wind_speed_10m&timezone=UTC";
+
+            const cities = [
+                {name: "Скопје", url: skopjeUrl}, 
+                {name: "Охрид", url: ohridUrl}, 
+                {name: "Битола", url: bitolaUrl}
+            ]
+
+            const dayParts = [
+                { name: "Ноќ",      from: 0,  to: 5  },
+                { name: "Утро",     from: 6,  to: 11 },
+                { name: "Попладне", from: 12, to: 17 },
+                { name: "Вечер",    from: 18, to: 23 }
+            ];
+
+            async function getData() {
+                return Promise.all(
+                    cities.map(city =>
+                        fetch(city.url)
+                        .then(r => r.json())
+                        .then(data => ({name: city.name, hourly: data.hourly}))
+                    )
+                )
+            }
+
+            async function main() {
+                const data = await getData();
+                console.log("Raw Data");
+                console.log(data);
+
+                const parsed = data.map(parseCity);
+                const parsed2 = data.map(city => parseCity(city));
+
+                console.log("Parsed");
+                console.log(parsed);
+
+                const reports = parsed.map(buildReport);
+
+                reports.sort((a, b) => b.avgTemp - a.avgTemp);
+
+                console.log("Reports");
+                console.log(reports);
+
+                const grouped = parsed.map(groupByDayPart);
+                console.log("Groups");
+                console.log(grouped);
+
+                const top5 = parsed
+                    .flatMap(city => city.records.map(r => ({
+                        city: city.name,
+                        time: r.time,
+                        temperature: r.temperature
+                    })))
+                    .sort((a, b) => b.temperature - a.temperature)
+                    .slice(0, 5);
+
+                console.log("Top 5");
+                console.log(top5);
+
+            }
+
+            function parseCity(city){
+                const records = city.hourly.time
+                    .map((t, i) => {
+                        return {
+                            time: t, 
+                            temperature: city.hourly.temperature_2m[i],
+                            precipitation: city.hourly.precipitation[i],
+                            wind: city.hourly.wind_speed_10m[i]
+                        }
+                    })
+                    .filter(record => 
+                        record.temperature !== null &&
+                        record.precipitation !== null &&
+                        record.wind !== null
+                    )
+
+                return {name: city.name, records: records};
+            }
+
+            function buildReport(city){
+                const totalPrecip = city.records.reduce((sum, r) => sum + r.precipitation, 0)
+                const rainyHours = city.records
+                    .filter(record =>
+                        record.precipitation > 0
+                    )
+                    .length
+                const maxWind = Math.max(...city.records.map(w => w.wind))
+                const avgTemp = city.records.reduce((sum, r) => sum +r.temperature, 0) / city.records.length
+                
+                return {
+                    name: city.name,
+                    avgTemp, maxWind, totalPrecip, rainyHours                   
+                };
+            }
+
+            function getHour(time) {
+                return Number(time.slice(11, 13));
+            }
+
+            function groupByDayPart(city) {
+                const groups = dayParts
+                    .map(part => {
+                        const partRecords = city.records.filter(r =>
+                            getHour(r.time) >= part.from &&
+                            getHour(r.time) <= part.to
+                        );
+
+                        return {
+                            part: part.name,
+                            count: partRecords.length,
+                            avgTemp: partRecords.reduce((sum, r) => sum + r.temperature, 0) / partRecords.length
+                        };
+                    })
+                    .filter(g => g.count > 0);
+
+                return { name: city.name, groups };
+            }
+
+            main();
+        </script>
+    </body>
+</html>
