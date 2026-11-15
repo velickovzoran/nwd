@@ -23,6 +23,19 @@
                 { name: "Вечер",    from: 18, to: 23 }
             ];
 
+            const monitor = createTemperatureMonitor(3);
+            console.log(monitor(10));
+            console.log(monitor(20));
+            console.log(monitor(30));
+            console.log(monitor(40));
+
+            const result = monitor(50);
+            result.temps.push(999);
+            console.log(monitor(60));
+
+            const monitor2 = createTemperatureMonitor(2);
+            console.log(monitor2(5));
+
             async function getData() {
                 return Promise.all(
                     cities.map(city =>
@@ -67,6 +80,10 @@
                 console.log("Top 5");
                 console.log(top5);
 
+                const allHaveDryHour = parsed.every(city =>
+                    city.records.some(r => r.precipitation === 0))
+
+                console.log("Sekoj grad ima cas bez vrnezi: ", allHaveDryHour);
             }
 
             function parseCity(city){
@@ -125,6 +142,27 @@
                     .filter(g => g.count > 0);
 
                 return { name: city.name, groups };
+            }
+
+            function createTemperatureMonitor(limit){
+                let temps = [];
+                let total = 0;
+
+                return function (newTemp){
+                    temps.push(newTemp);
+                    total++;
+
+                    if (temps.length > limit) {
+                        temps = temps.slice(-limit);
+                    }
+
+                    return {
+                        temps: [...temps], //or temps.slice() --> i dvete vrakaat nova niza
+                        avg: temps.reduce((sum, t) => sum + t, 0) / temps.length,
+                        max: Math.max(...temps),
+                        total: total
+                    };
+                }
             }
 
             main();
