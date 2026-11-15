@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="mk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JS Reintroduction квиз</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Onest:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one narrow study column; the code block reads like an editor tab,
+   and output answers read like console lines. JS yellow is used only as a highlighter fill. */
+:root {
+  --bg: #eef0f4;
+  --surface: #ffffff;
+  --ink: #15171c;
+  --muted: #5b6270;
+  --line: #d9dde6;
+  --accent: #f0d21a;
+  --accent-ink: #15171c;
+  --code-bg: #f6f7fa;
+  --good: #1d7f47;
+  --good-bg: #e3f4ea;
+  --bad: #b8342c;
+  --bad-bg: #fbe6e4;
+  --tk-k: #7a3db8;
+  --tk-s: #1d7f47;
+  --tk-n: #b5540e;
+  --tk-f: #1f5fbf;
+  --tk-c: #8a90a0;
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Onest", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1116;
+    --surface: #181b22;
+    --ink: #e8eaf0;
+    --muted: #99a0ad;
+    --line: #2a2f3a;
+    --accent: #f0d21a;
+    --accent-ink: #15171c;
+    --code-bg: #12141a;
+    --good: #46c27c;
+    --good-bg: #15291e;
+    --bad: #f0786e;
+    --bad-bg: #2e1817;
+    --tk-k: #c59af0;
+    --tk-s: #7fd49e;
+    --tk-n: #f2a76a;
+    --tk-f: #82b4ff;
+    --tk-c: #6b7280;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1116;
+  --surface: #181b22;
+  --ink: #e8eaf0;
+  --muted: #99a0ad;
+  --line: #2a2f3a;
+  --accent: #f0d21a;
+  --accent-ink: #15171c;
+  --code-bg: #12141a;
+  --good: #46c27c;
+  --good-bg: #15291e;
+  --bad: #f0786e;
+  --bad-bg: #2e1817;
+  --tk-k: #c59af0;
+  --tk-s: #7fd49e;
+  --tk-n: #f2a76a;
+  --tk-f: #82b4ff;
+  --tk-c: #6b7280;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 28px 18px 64px;
+  display: grid;
+  gap: 22px;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0.05em 0.35em;
+  white-space: break-spaces;
+}
+
+/* Header */
+.brand { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(26px, 5vw, 38px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-wrap: balance;
+}
+.brand h1 .js {
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0 0.18em;
+  border-radius: 4px;
+  margin-right: 0.12em;
+}
+.brand .src { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+.ghost-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted);
+}
+.ghost-btn:hover { color: var(--ink); border-color: var(--muted); }
+
+/* Generic panel */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px;
+  display: grid;
+  gap: 18px;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+/* Setup */
+.lede { margin: 0; max-width: 62ch; }
+.topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.topic {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  text-align: left;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 14.5px;
+}
+.topic .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.topic[aria-pressed="true"] { background: var(--surface); box-shadow: inset 4px 0 0 var(--accent); }
+.topic[aria-pressed="true"]:hover { border-color: var(--muted); }
+.topic[aria-pressed="false"] { color: var(--muted); background: transparent; border-style: dashed; }
+.topic[aria-pressed="false"] .n { opacity: 0.6; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg {
+  border: 1px solid var(--line);
+  background: var(--code-bg);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.seg[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.check { display: inline-flex; gap: 8px; align-items: center; font-size: 14.5px; cursor: pointer; }
+.check input { width: 17px; height: 17px; accent-color: var(--ink); }
+.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  border-radius: 999px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+}
+.primary:hover { filter: brightness(0.96); }
+.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.secondary {
+  background: transparent;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.note { color: var(--muted); font-size: 14px; margin: 0; }
+.mini-link { background: none; border: none; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 13px; }
+
+/* Quiz bar */
+.qbar { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; }
+.qcount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; white-space: nowrap; }
+.qcount b { font-family: var(--font-display); font-weight: 700; font-size: 26px; color: var(--ink); margin-right: 4px; }
+.track { display: flex; gap: 2px; height: 8px; }
+.track span { flex: 1; background: var(--line); border-radius: 2px; }
+.track span.ok { background: var(--good); }
+.track span.no { background: var(--bad); }
+.track span.now { background: var(--accent); }
+.tally { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tally .g { color: var(--good); }
+.tally .b { color: var(--bad); margin-left: 8px; }
+
+/* Question card */
+.meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.chip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.chip.out { border-color: transparent; background: var(--accent); color: var(--accent-ink); }
+.qtext {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 1.35;
+  margin: 0;
+  text-wrap: balance;
+}
+.code { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--code-bg); }
+.code-head {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+  padding: 7px 12px; border-bottom: 1px solid var(--line);
+}
+.code pre { margin: 0; padding: 12px 0; overflow-x: auto; font-family: var(--font-mono); font-size: 14px; line-height: 1.6; counter-reset: ln; }
+.code pre code { display: block; background: none; border: 0; padding: 0; border-radius: 0; font-size: inherit; white-space: pre; }
+.code .ln { display: block; padding: 0 16px 0 0; white-space: pre; }
+.code .ln::before {
+  counter-increment: ln;
+  content: counter(ln);
+  display: inline-block;
+  width: 2.6em;
+  padding-right: 1em;
+  text-align: right;
+  color: var(--tk-c);
+  user-select: none;
+}
+.tk-k { color: var(--tk-k); }
+.tk-s { color: var(--tk-s); }
+.tk-n { color: var(--tk-n); }
+.tk-f { color: var(--tk-f); }
+.tk-c { color: var(--tk-c); font-style: italic; }
+
+.opts { display: grid; gap: 8px; }
+.opt {
+  display: grid; grid-template-columns: 30px 1fr auto; gap: 12px; align-items: start;
+  text-align: left;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 11px 14px;
+  cursor: pointer;
+  transition: border-color 0.12s, background-color 0.12s;
+}
+.opt:hover:not(:disabled) { border-color: var(--ink); }
+.opt:disabled { cursor: default; }
+.opt .key {
+  font-family: var(--font-mono); font-size: 13px; font-weight: 600;
+  width: 26px; height: 26px; display: grid; place-items: center;
+  border: 1px solid var(--line); border-radius: 6px; color: var(--muted);
+}
+.opt .txt { padding-top: 2px; overflow-wrap: anywhere; }
+.opt .txt.mono {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+.opt .mark { font-size: 13px; font-weight: 600; padding-top: 3px; white-space: nowrap; }
+.opt.right { border-color: var(--good); background: var(--good-bg); }
+.opt.right .key { background: var(--good); color: var(--surface); border-color: var(--good); }
+.opt.right .mark { color: var(--good); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-bg); }
+.opt.wrong .key { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.opt.wrong .mark { color: var(--bad); }
+.opt.dim { opacity: 0.55; }
+
+.hint {
+  border-left: 4px solid var(--accent);
+  background: var(--code-bg);
+  padding: 10px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+}
+.hint b { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 6px; }
+.feedback { border-radius: 8px; padding: 14px 16px; border: 1px solid var(--line); display: grid; gap: 6px; }
+.feedback.ok { border-color: var(--good); }
+.feedback.no { border-color: var(--bad); }
+.feedback .verdict { font-weight: 600; }
+.feedback.ok .verdict { color: var(--good); }
+.feedback.no .verdict { color: var(--bad); }
+.feedback p { margin: 0; max-width: 65ch; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.actions .left, .actions .right-side { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.kbd-help { color: var(--muted); font-size: 12.5px; font-family: var(--font-mono); }
+
+/* Results */
+.score { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.score .pct { font-family: var(--font-display); font-weight: 700; font-size: clamp(48px, 10vw, 72px); line-height: 1; font-variant-numeric: tabular-nums; }
+.score .of { color: var(--muted); font-size: 17px; }
+.verdict-line { margin: 0; font-size: 17px; }
+.bars { display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 52px; gap: 12px; align-items: center; font-size: 14px; }
+.bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--good); border-radius: 999px; }
+.bar i.mid { background: var(--accent); }
+.bar i.low { background: var(--bad); }
+.bar-row .v { font-family: var(--font-mono); font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+.mistakes { display: grid; gap: 8px; }
+.mistakes details { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.mistakes summary { cursor: pointer; padding: 12px 14px; font-weight: 500; display: flex; gap: 10px; }
+.mistakes summary .num { font-family: var(--font-mono); color: var(--bad); font-size: 13px; padding-top: 2px; }
+.mistakes .body { padding: 0 14px 14px; display: grid; gap: 10px; }
+.ans-line { display: grid; grid-template-columns: 110px 1fr; gap: 10px; font-size: 14.5px; }
+.ans-line .k { color: var(--muted); font-size: 13px; padding-top: 2px; }
+.ans-line pre { margin: 0; font-family: var(--font-mono); font-size: 13.5px; white-space: pre-wrap; }
+.ans-line.your pre, .ans-line.your span { color: var(--bad); }
+.ans-line.corr pre, .ans-line.corr span { color: var(--good); }
+.empty-ok { margin: 0; color: var(--good); font-weight: 500; }
+
+@media (max-width: 560px) {
+  .wrap { padding: 20px 16px 48px; }
+  .panel { padding: 16px; }
+  .qtext { font-size: 18.5px; }
+  .qbar { grid-template-columns: auto 1fr; }
+  .tally { grid-column: 1 / -1; }
+  .bar-row { grid-template-columns: 1fr 48px; }
+  .bar-row .bar { grid-column: 1 / -1; grid-row: 2; }
+  .ans-line { grid-template-columns: 1fr; gap: 2px; }
+  .kbd-help { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <div>
+      <h1><span class="js">JS</span>Reintroduction квиз</h1>
+      <p class="src">100 прашања од „Javascript, Reintroduction for programmers“ и „JavaScript Functions, Arrays and the DOM“ (Advanced Web Design, FINKI)</p>
+    </div>
+    <button class="ghost-btn" id="home-btn" type="button" hidden>Нов квиз</button>
+  </header>
+  <main id="app" aria-live="polite"></main>
+</div>
+
+<script>
+const QUESTIONS = [{"t": "basics", "q": "Каква е врската помеѓу JavaScript и Java?", "c": null, "o": ["Немаат ништо заедничко, само имињата се слични", "JavaScript е поедноставена верзија на Java", "JavaScript се компајлира во Java bytecode", "Java е старата верзија на JavaScript"], "a": 0, "h": "Документот го кажува ова уште во Overview.", "e": "JavaScript е сосема различен јазик со слично име. Неговата спецификација се вика ECMAScript.", "r": false}, {"t": "basics", "q": "Како се вика официјалната спецификација на JavaScript?", "c": null, "o": ["ECMAScript (стандард ECMA-262)", "V8", "TC39", "JScript"], "a": 0, "h": "Стандардот го издава Ecma International, секоја година по една нова edition.", "e": "ECMAScript (ECMA-262) е спецификацијата. TC39 е комитетот што ги развива proposals, V8 е engine-от на Chrome, а JScript е старата имплементација на Microsoft. Од ES2016 излегува нова edition секоја година.", "r": false}, {"t": "basics", "q": "Колку primitive типови има JavaScript?", "c": null, "o": ["7", "5", "6", "9"], "a": 0, "h": "undefined, null, boolean... продолжи да броиш.", "e": "`undefined`, `null`, `boolean`, `number`, `string`, `symbol` (ES6) и `bigint` (ES2020). Сè друго е object.", "r": false}, {"t": "basics", "q": "Кој од овие НЕ е primitive тип?", "c": null, "o": ["array", "symbol", "bigint", "undefined"], "a": 0, "h": "Сè што не е primitive е ... ?", "e": "Низите се специјален тип на object (со магично `length` property). `symbol`, `bigint` и `undefined` се primitive.", "r": false}, {"t": "basics", "q": "Како JavaScript ги чува целите броеви (integers)?", "c": null, "o": ["Како 64-bit floating point (double), исто како децималните", "Во посебен 32-bit `int` тип", "Како string", "Автоматски како `bigint`"], "a": 0, "h": "`number` нема посебен integer подтип.", "e": "`number` е секогаш 64-bit double. Целите броеви се точни до `Number.MAX_SAFE_INTEGER` (2^53 - 1), а за поголеми се користи BigInt (пр. `9007199254740992n`).", "r": false}, {"t": "basics", "q": "Што ќе се испечати?", "c": "let name = \"John\";\nconsole.log(`Hello, ${name}! ${1 + 2}`);", "o": ["Hello, John! 3", "Hello, ${name}! ${1 + 2}", "Hello, John! 1 + 2", "SyntaxError"], "a": 0, "h": "Backticks не се обични наводници.", "e": "Template literals (backticks) го пресметуваат секој израз во `${...}` и резултатот го ставаат во string-от. Затоа `${1 + 2}` станува `3`.", "r": true}, {"t": "basics", "q": "Како се вклучува strict mode за целата скрипта?", "c": null, "o": ["Со `\"use strict\";` на самиот почеток на скриптата", "Со атрибут `strict` на `\u003cscript>` тагот", "Со `\u003c!DOCTYPE strict>`", "Не може, се вклучува во browser settings"], "a": 0, "h": "Изгледа како обичен string.", "e": "Директивата `\"use strict\"` на врвот ја вклучува за целата скрипта, а на почетокот на функција само за таа функција. Класите и ES modules се автоматски во strict mode.", "r": false}, {"t": "basics", "q": "Што значи дека JavaScript е dynamically typed?", "c": null, "o": ["Типот на променливата се одредува за време на извршување, според вредноста", "Мора да го напишеш типот при секоја декларација", "Типовите воопшто не постојат", "Променливата не смее да ја смени вредноста"], "a": 0, "h": "Кој го одредува типот и кога?", "e": "Јазикот сам го одредува типот за време на извршување (during execution). Истата променлива може прво да чува број, па string.", "r": false}, {"t": "basics", "q": "Што ќе се испечати?", "c": "console.log(typeof [], typeof null, typeof function () {});", "o": ["object object function", "array null function", "array object object", "object null function"], "a": 0, "h": "Документот пишува \"careful!\" кај две од овие.", "e": "`typeof` секогаш враќа string. За низа враќа \"object\" (низите се објекти), а `typeof null` исто дава \"object\" (позната грешка во јазикот). За функција враќа \"function\".", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "var foo = 1;\nvar bar = '2';\nconsole.log(foo + bar);", "o": ["12", "3", "NaN", "TypeError"], "a": 0, "h": "Ако едната страна на `+` е string...", "e": "Ова е coercion: бидејќи `bar` е string, `+` прави concatenation, па `1` станува `\"1\"` и се добива `\"12\"`.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "var foo = 1;\nvar bar = '2';\nconsole.log(foo + +bar);", "o": ["3", "12", "1NaN", "NaN"], "a": 0, "h": "Што прави `+` пред една вредност (unary plus)?", "e": "Unary plus (`+bar`) го претвора string-от во број, исто како `Number(bar)`. Така се добива `1 + 2 = 3`.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "console.log(1 == \"1\", 1 === \"1\");", "o": ["true false", "true true", "false false", "false true"], "a": 0, "h": "Едниот оператор прави coercion, другиот не.", "e": "`==` прво ги претвора вредностите во ист тип (coercion), па `1 == \"1\"` е true. `===` (strict) го споредува и типот, па е false. Документот препорачува секогаш `===` и `!==`.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "var foo = 1, bar = 0, baz = 2;\nconsole.log(foo || bar);\nconsole.log(bar || foo);\nconsole.log(foo && bar);\nconsole.log(foo && baz);", "o": ["1\n1\n0\n2", "true\ntrue\nfalse\ntrue", "1\n0\n0\n2", "1\n1\n0\n1"], "a": 0, "h": "`||` и `&&` не враќаат true/false, туку една од вредностите.", "e": "`||` го враќа првиот truthy операнд (или последниот ако нема truthy). `&&` го враќа првиот falsy операнд (или последниот ако сите се truthy). Затоа `foo && baz` дава `2`.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "var i = 1;\nvar j = ++i;\nvar k = i++;\nconsole.log(i, j, k);", "o": ["3 2 2", "3 2 3", "2 2 2", "3 1 2"], "a": 0, "h": "`++i` прво зголемува, `i++` прво ја враќа старата вредност.", "e": "`++i` (pre-increment): i станува 2 и j добива 2. `i++` (post-increment): k ја добива старата вредност 2, па i станува 3.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "console.log(1 \u003c 2 \u003c 3, 3 \u003c 2 \u003c 1);", "o": ["true true", "true false", "false false", "false true"], "a": 0, "h": "Се пресметува од лево кон десно, а true/false се претвораат во број.", "e": "`3 \u003c 2` е false, па `false \u003c 1` станува `0 \u003c 1`, што е true. Слично, `1 \u003c 2` е true, а `true \u003c 3` е `1 \u003c 3`, исто true.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "console.log(null == 0, null \u003c 1);", "o": ["false true", "true true", "true false", "false false"], "a": 0, "h": "`\u003c` и `==` не го третираат `null` исто.", "e": "Кај `\u003c`, `null` се претвора во `0`, па `null \u003c 1` е true. Но `==` има посебно правило: `null` е еднакво само на `undefined` (и на себе), па `null == 0` е false.", "r": true}, {"t": "ops", "q": "Што ќе се испечати?", "c": "function greet(lang) {\n  lang = lang || \"en\";\n  console.log(lang);\n}\ngreet();\ngreet(\"mk\");\ngreet(\"\");", "o": ["en\nmk\nen", "en\nmk\n(празен ред)", "undefined\nmk\n(празен ред)", "en\nmk\nundefined"], "a": 0, "h": "Дали празен string е truthy или falsy?", "e": "`||` често се користи за default вредности. Но `\"\"` е falsy, па и тој е заменет со \"en\". ES6 default parameters (`lang = \"en\"`) реагираат само на `undefined`, па се посигурни.", "r": true}, {"t": "ops", "q": "Кои оператори за споредба документот препорачува да се користат секогаш?", "c": null, "o": ["`===` и `!==`", "`==` и `!=`", "`=` и `!`", "`\u003c=` и `>=`"], "a": 0, "h": "Оние што НЕ прават coercion.", "e": "Strict операторите `===` и `!==` споредуваат и вредност и тип, без тивко претворање (coercion). Така избегнуваш изненадувања како `\"\" == 0` (true).", "r": false}, {"t": "flow", "q": "Која од овие вредности е falsy?", "c": null, "o": ["`NaN`", "`'0'`", "`[]`", "`{}`"], "a": 0, "h": "Празна низа и празен објект се изненадувачки truthy.", "e": "Falsy се: `false`, `0`, `-0`, `0n`, `''`, `NaN`, `null` и `undefined`. `'0'` е непразен string, а `[]` и `{}` се објекти, па се truthy.", "r": false}, {"t": "flow", "q": "Која од овие вредности е truthy?", "c": null, "o": ["`'false'` (string)", "`0`", "`''`", "`undefined`"], "a": 0, "h": "Гледај го типот, не содржината.", "e": "Секој непразен string е truthy, дури и `'false'` и `'0'`. Важно е само дали string-от е празен, не што пишува во него.", "r": false}, {"t": "flow", "q": "Што ќе се испечати?", "c": "if ([]) {\n  console.log(\"truthy\");\n} else {\n  console.log(\"falsy\");\n}", "o": ["truthy", "falsy", "TypeError", "(ништо)"], "a": 0, "h": "Празна низа е сепак објект.", "e": "Сите објекти, вклучително празна низа `[]` и празен објект `{}`, се truthy.", "r": true}, {"t": "flow", "q": "Што ќе се испечати?", "c": "const foo = 'bar';\nswitch (foo) {\n  case 'bar':\n    console.log('bar');\n  case 'baz':\n    console.log('baz');\n    break;\n  default:\n    console.log('default');\n}", "o": ["bar\nbaz", "bar", "bar\nbaz\ndefault", "default"], "a": 0, "h": "Што фали во `case 'bar'`?", "e": "Без `break`, извршувањето \"пропаѓа\" (fall-through) во следниот case сè до првиот `break`. Затоа се печатат и 'bar' и 'baz'.", "r": true}, {"t": "flow", "q": "Што ќе се испечати?", "c": "let n = 0;\ndo {\n  n++;\n} while (false);\nconsole.log(n);", "o": ["1", "0", "undefined", "Бесконечна јамка"], "a": 0, "h": "Кај do-while условот се проверува на крајот.", "e": "do-while го извршува телото барем еднаш, пред да го провери условот. Затоа n станува 1 иако условот е `false`.", "r": true}, {"t": "flow", "q": "Што ќе се испечати?", "c": "for (let i = 0; i \u003c 5; i++) {\n  if (i % 2 === 0) continue;\n  console.log(i);\n}", "o": ["1\n3", "0\n2\n4", "1\n3\n5", "(ништо)"], "a": 0, "h": "`continue` не ја прекинува целата јамка.", "e": "`continue` го прескокнува остатокот од телото и оди на следната итерација. Парните (0, 2, 4) се прескокнуваат, па се печатат 1 и 3. `break` би ја прекинал целата јамка.", "r": true}, {"t": "flow", "q": "Што ќе се испечати?", "c": "var i = -1;\nvar count = 0;\nwhile (++i \u003c 5) {\n  count++;\n}\nconsole.log(count, i);", "o": ["5 5", "6 5", "5 4", "6 6"], "a": 0, "h": "`++i` прво зголемува, па споредува.", "e": "Во телото i е 0, 1, 2, 3, 4 (5 пати). Потоа `++i` го прави 5, `5 \u003c 5` е false и јамката застанува. Затоа count = 5 и i = 5.", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "console.log(myVar);\nvar myVar = 2;", "o": ["undefined", "2", "ReferenceError", "null"], "a": 0, "h": "var hoisting: декларацијата \"оди горе\", вредноста не.", "e": "Кодот се извршува како `var myVar; console.log(myVar); myVar = 2;`. Во creation phase, var променливите добиваат `undefined`.", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "console.log(myVar);\nlet myVar = 2;", "o": ["ReferenceError", "undefined", "2", "null"], "a": 0, "h": "И let е hoisted, но...", "e": "let и const се hoisted, но не се иницијализирани. Пристап пред декларацијата фрла ReferenceError. Тоа е Temporal Dead Zone (TDZ).", "r": true}, {"t": "scope", "q": "Како се вика периодот во кој `let`/`const` променлива веќе постои во scope-от, но не смее да се чита пред својата декларација?", "c": null, "o": ["Temporal Dead Zone (TDZ)", "Hoisting zone", "Execution phase", "Closure scope"], "a": 0, "h": "Во табелата во документот, var има \"No\" во оваа колона.", "e": "TDZ трае од почетокот на блокот до линијата со декларацијата. var нема TDZ (враќа undefined), а let и const имаат.", "r": false}, {"t": "scope", "q": "Што ќе се испечати?", "c": "function myFunction() {\n  var myVar = \"Nick\";\n  if (true) {\n    var myVar = \"John\";\n  }\n  console.log(myVar);\n}\nmyFunction();", "o": ["John", "Nick", "undefined", "SyntaxError"], "a": 0, "h": "var е function scoped, не block scoped.", "e": "var нема block scope, па `var myVar` во if е истата променлива од функцијата. \"Nick\" е пребришан со \"John\".", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "function myFunction() {\n  let myVar = \"Nick\";\n  if (true) {\n    let myVar = \"John\";\n  }\n  console.log(myVar);\n}\nmyFunction();", "o": ["Nick", "John", "undefined", "SyntaxError"], "a": 0, "h": "let е block scoped.", "e": "`let myVar` во if блокот е сосема нова променлива што живее само во тој блок. Надворешната останува \"Nick\".", "r": true}, {"t": "scope", "q": "Што се случува?", "c": "let x = 2;\nlet x = 3;\nconsole.log(x);", "o": ["SyntaxError", "3", "2", "undefined"], "a": 0, "h": "let не дозволува две декларации со исто име во ист scope.", "e": "let (и const) не смее повторно да се декларира во ист scope, па се фрла SyntaxError уште пред извршување. Со var ова би поминало.", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "function b() {\n  console.log(myVar);\n}\nfunction a() {\n  var myVar = 2;\n  b();\n}\nvar myVar = 1;\na();", "o": ["1", "2", "undefined", "ReferenceError"], "a": 0, "h": "Важно е КАДЕ е напишана b, а не од каде е повикана.", "e": "b е лексички (физички) напишана во global, па нејзиниот outer environment е global, каде myVar = 1. Execution stack (a ја повикува b) не е исто што и scope chain.", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "function a() {\n  function b() {\n    console.log(myVar);\n  }\n  var myVar = 2;\n  b();\n}\nvar myVar = 1;\na();", "o": ["2", "1", "undefined", "ReferenceError"], "a": 0, "h": "Сега b е напишана внатре во a.", "e": "b сега лексички седи во a, па нејзиниот outer environment е a, каде myVar = 2. Повик на `b()` надвор од a би дал ReferenceError.", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "function b() {\n  var myVar;\n  console.log(myVar);\n}\nfunction a() {\n  var myVar = 2;\n  console.log(myVar);\n  b();\n}\nvar myVar = 1;\nconsole.log(myVar);\na();\nconsole.log(myVar);", "o": ["1\n2\nundefined\n1", "1\n2\n2\n1", "1\n2\n1\n1", "1\n2\nundefined\n2"], "a": 0, "h": "Секој execution context има своја variable environment.", "e": "Секоја функција има своја меморија. b има свој `var myVar` без вредност (undefined), a има свој (2), а глобалниот останува 1 цело време.", "r": true}, {"t": "scope", "q": "Што ќе се испечати?", "c": "b();\nconsole.log(a);\nvar a = 'Hello World!';\nfunction b() {\n  console.log('Called b!');\n}", "o": ["Called b!\nundefined", "Called b!\nHello World!", "ReferenceError", "undefined\nCalled b!"], "a": 0, "h": "Функциите и var се третираат различно во creation phase.", "e": "Во creation phase, функцијата b целосно се става во меморија, а `a` добива `undefined`. Затоа `b()` работи, а `a` е сè уште undefined.", "r": true}, {"t": "scope", "q": "Што се случува во creation phase на еден execution context?", "c": null, "o": ["Се резервира меморија: var променливите добиваат `undefined`, а функциите целосно се ставаат во меморија", "Кодот се извршува линија по линија", "Сите променливи се бришат од меморијата", "Кодот се преведува и се зачувува на диск"], "a": 0, "h": "Ова е причината за hoisting.", "e": "Прво е creation phase (се креираат Lexical и Variable Environment, global object, `this`, outer reference и меморија за декларациите), а потоа execution phase, каде кодот се извршува линија по линија.", "r": false}, {"t": "scope", "q": "Што ќе се испечати?", "c": "function first() {\n  console.log('first start');\n  second();\n  console.log('first end');\n}\nfunction second() {\n  console.log('second');\n}\nfirst();\nconsole.log('global');", "o": ["first start\nsecond\nfirst end\nglobal", "first start\nfirst end\nsecond\nglobal", "second\nfirst start\nfirst end\nglobal", "global\nfirst start\nsecond\nfirst end"], "a": 0, "h": "Execution stack е LIFO.", "e": "Секој повик става нов execution context на врвот на stack-от (LIFO). second мора да заврши (pop) пред first да продолжи. Глобалниот код продолжува на крај.", "r": true}, {"t": "scope", "q": "Во класична скрипта (не module), што ќе се испечати?", "c": "var a = 1;\nlet b = 2;\nconsole.log(globalThis.a, globalThis.b);", "o": ["1 undefined", "1 2", "undefined undefined", "undefined 2"], "a": 0, "h": "Само едната декларација станува property на global object (`window`).", "e": "Top-level var и function декларации стануваат properties на global object (`window` во browser). let, const и class се глобални, но не се додаваат на global object. `globalThis` е global object во секоја околина.", "r": true}, {"t": "scope", "q": "Без strict mode, што ќе се испечати?", "c": "function f() {\n  x = 10;\n}\nf();\nconsole.log(x);", "o": ["10", "ReferenceError", "undefined", "null"], "a": 0, "h": "Што прави JS кога доделуваш вредност на променлива што никаде не е декларирана?", "e": "Без `var`/`let`/`const`, JS го бара x низ scope chain до global и кога не го наоѓа, креира глобална променлива. Ова е опасно, а во strict mode фрла ReferenceError.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "anonymousGreet();\nvar anonymousGreet = function () {\n  console.log('hi');\n};", "o": ["TypeError", "ReferenceError", "hi", "undefined"], "a": 0, "h": "var е hoisted со вредност `undefined`. Што е `undefined()`?", "e": "Function expression не е hoisted, само `var anonymousGreet` е (со undefined). Повикот `undefined()` фрла TypeError: is not a function. Со let би било ReferenceError (TDZ).", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "sayHi();\ngreet();\nfunction sayHi() { console.log(\"Hi\"); }\nlet greet = function () { console.log(\"Hello\"); };", "o": ["Hi\nReferenceError", "Hi\nHello", "ReferenceError", "Hi\nTypeError"], "a": 0, "h": "Function statement наспроти function expression во let.", "e": "`sayHi` е function statement и се hoist-нува целосно, па работи. `greet` е function expression во let и е во TDZ до својата линија, па фрла ReferenceError.", "r": true}, {"t": "func", "q": "Што значи дека функциите во JavaScript се \"first-class citizens\"?", "c": null, "o": ["Може да се чуваат во променливи, да се предаваат како аргументи и да се враќаат од функции", "Се извршуваат пред сите други наредби", "Имаат приоритет во execution stack", "Само тие смеат да користат `this`"], "a": 0, "h": "Со функција може да правиш сè што правиш со обична вредност.", "e": "Функциите се специјален тип на object. Може да се доделат на променлива, да се предадат како аргумент (callback), да се вратат од друга функција, па дури и да имаат свои properties.", "r": false}, {"t": "func", "q": "Што ќе се испечати?", "c": "let num1 = 10;\nfunction changeValue(value) {\n  value = 20;\n}\nchangeValue(num1);\nconsole.log(num1);", "o": ["10", "20", "undefined", "ReferenceError"], "a": 0, "h": "Primitive вредностите се копираат.", "e": "Primitive типовите се предаваат by value. `value` е локална копија, па менувањето не влијае на `num1`.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "let student = { name: \"John\" };\nfunction changeName(s) {\n  s.name = \"Jane\";\n}\nchangeName(student);\nconsole.log(student.name);", "o": ["Jane", "John", "undefined", "TypeError"], "a": 0, "h": "Се копира референцата, но таа покажува кон истиот објект.", "e": "Референцата кон објектот се копира by value, но двете покажуваат кон ИСТИОТ објект во меморија. Затоа мутацијата `s.name = ...` се гледа и надвор.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "var c = { greeting: 'hi' };\nvar d = c;\nc.greeting = 'hello';\nc = { greeting: 'howdy' };\nconsole.log(c.greeting, d.greeting);", "o": ["howdy hello", "howdy howdy", "hello hello", "hi howdy"], "a": 0, "h": "`=` со нов `{}` создава нов објект на нова адреса.", "e": "d и c покажуваат кон ист објект, па мутацијата на 'hello' се гледа во двете. Потоа `c = {...}` создава НОВ објект само за c, а d уште покажува кон стариот.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "function sayHello() {\n  console.log(\"Hello!\");\n}\nfunction greetStudents(someFunction) {\n  console.log(\"Preparing...\");\n  someFunction();\n  console.log(\"How are you?\");\n}\ngreetStudents(sayHello);", "o": ["Preparing...\nHello!\nHow are you?", "Hello!\nPreparing...\nHow are you?", "Preparing...\nHow are you?\nHello!", "Preparing...\nHow are you?"], "a": 0, "h": "Callback се извршува тогаш кога функцијата ќе го повика.", "e": "sayHello е предадена како аргумент (callback), без загради. greetStudents ја повикува во средината, со `someFunction()`.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "function sayHello() {\n  console.log(\"Hello!\");\n}\nfunction run(fn) {\n  fn();\n}\nrun(sayHello());", "o": ["Hello!\nTypeError", "Hello!", "TypeError", "Hello!\nHello!"], "a": 0, "h": "Внимавај на `()` после `sayHello`.", "e": "`sayHello()` се извршува веднаш (печати Hello!) и враќа undefined. Потоа `run(undefined)` се обидува `undefined()` и фрла TypeError. Правилно е `run(sayHello)`, без загради.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "(function () {\n  var foo = 'Hello world';\n})();\nconsole.log(typeof foo);", "o": ["undefined", "string", "ReferenceError", "object"], "a": 0, "h": "Каде живее foo?", "e": "foo живее само внатре во IIFE, па не го загадува global namespace. `typeof` на недекларирана променлива враќа \"undefined\" без грешка (`console.log(foo)` би фрлило ReferenceError).", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "function myFunc(x = 10) {\n  return x;\n}\nconsole.log(myFunc(), myFunc(5), myFunc(undefined), myFunc(null));", "o": ["10 5 10 null", "10 5 10 10", "10 5 undefined null", "undefined 5 undefined null"], "a": 0, "h": "Default вредноста се применува во точно два случаи.", "e": "Default параметарот се користи само кога нема аргумент или кога аргументот е `undefined`. `null` е вистинска вредност, па се враќа null.", "r": true}, {"t": "func", "q": "Што ќе се испечати?", "c": "function myFunc(x, y, ...params) {\n  console.log(params);\n}\nmyFunc(\"a\", \"b\", \"c\", \"d\");", "o": ["[\"c\", \"d\"]", "[\"a\", \"b\", \"c\", \"d\"]", "c", "[\"d\"]"], "a": 0, "h": "Rest параметарот ги собира \"остатоците\".", "e": "`...params` (rest) ги собира сите аргументи после x и y во вистинска низа. Тоа е модерната замена за `arguments`.", "r": true}, {"t": "this", "q": "Што ќе се испечати?", "c": "var myObject = {\n  myName: 'Rebecca',\n  sayHello: function () {\n    console.log('Hi ' + this.myName);\n  }\n};\nvar secondObject = { myName: 'Colin' };\nmyObject.sayHello.call(secondObject);", "o": ["Hi Colin", "Hi Rebecca", "Hi undefined", "TypeError"], "a": 0, "h": "Првиот аргумент на `call` станува `this`.", "e": "`call` ја повикува функцијата и го поставува `this` на првиот аргумент, тука secondObject. `apply` е исто, само аргументите се праќаат како низа.", "r": true}, {"t": "this", "q": "Без strict mode, што ќе се испечати?", "c": "var myName = 'global';\nvar sayHello = function () {\n  console.log(this.myName);\n};\nvar myObject = { myName: 'Rebecca' };\nvar bound = sayHello.bind(myObject);\nsayHello();\nbound();", "o": ["global\nRebecca", "Rebecca\nRebecca", "global\nglobal", "undefined\nRebecca"], "a": 0, "h": "`bind` враќа НОВА функција со заклучен `this`.", "e": "Самостоен повик `sayHello()` има `this` = global object, а top-level `var myName` е property на global object. `bind` прави нова функција каде `this` е секогаш myObject.", "r": true}, {"t": "this", "q": "Без strict mode, што ќе се испечати?", "c": "var Person = function (firstName) {\n  this.firstName = firstName;\n};\nPerson.prototype.sayHello = function () {\n  console.log(\"Hello, I'm \" + this.firstName);\n};\nvar person1 = new Person(\"Alice\");\nvar helloFunction = person1.sayHello;\nhelloFunction();", "o": ["Hello, I'm undefined", "Hello, I'm Alice", "TypeError", "ReferenceError"], "a": 0, "h": "Важно е КАКО е повикана функцијата, не од каде е земена.", "e": "helloFunction е истата функција, но повикана самостојно, па `this` е global object, кој нема firstName. Во strict mode `this` би бил undefined и би фрлило TypeError. `helloFunction.call(person1)` би дало Alice.", "r": true}, {"t": "this", "q": "Без strict mode, што ќе се испечати?", "c": "var c = {\n  name: 'c object',\n  log: function () {\n    var setname = function (newname) {\n      this.name = newname;\n    };\n    setname('Updated');\n    console.log(this.name);\n  }\n};\nc.log();", "o": ["c object", "Updated", "undefined", "TypeError"], "a": 0, "h": "Внатрешната функција е повикана сама, без објект пред неа.", "e": "Функциите дефинирани внатре во метод не го добиваат `this` на објектот. `setname(...)` е самостоен повик, па го менува `name` на global object, не на c. Решение: `var self = this;` или arrow function.", "r": true}, {"t": "this", "q": "Што ќе се испечати?", "c": "var bob = {\n  name: \"Bob\",\n  friends: [\"Ana\", \"Marko\"],\n  printFriends() {\n    this.friends.forEach(f => console.log(this.name + \" knows \" + f));\n  }\n};\nbob.printFriends();", "o": ["Bob knows Ana\nBob knows Marko", "undefined knows Ana\nundefined knows Marko", "TypeError", "Bob knows Ana,Marko"], "a": 0, "h": "Arrow function нема свој `this`.", "e": "Arrow function го зема `this` од околниот контекст (printFriends, каде `this` е bob). Затоа не треба трикот `var that = this`.", "r": true}, {"t": "obj", "q": "Што ќе се испечати?", "c": "var person = {};\nperson[\"firstname\"] = \"Jon\";\nvar prop = \"firstname\";\nconsole.log(person[prop], person.prop);", "o": ["Jon undefined", "Jon Jon", "undefined Jon", "undefined undefined"], "a": 0, "h": "Dot notation го зема името буквално.", "e": "`person[prop]` (computed member access) прво ја чита вредноста на prop, т.е. \"firstname\". `person.prop` бара property со буквално име \"prop\", кое не постои.", "r": true}, {"t": "obj", "q": "Што ќе се испечати?", "c": "var Person = function () {};\nPerson.prototype.walk = function () {};\nvar p1 = new Person();\nvar p2 = new Person();\nconsole.log(p1.walk === p2.walk);", "o": ["true", "false", "undefined", "TypeError"], "a": 0, "h": "Каде живее walk: во секоја инстанца или на едно место?", "e": "Методите на `prototype` се споделени помеѓу сите инстанци, па `p1.walk` и `p2.walk` се истата функција. Properties поставени во конструкторот со `this.x` се посебни за секоја инстанца.", "r": true}, {"t": "obj", "q": "Што ќе се испечати?", "c": "var Person = function (firstName) {\n  this.firstName = firstName;\n};\nPerson.prototype.walk = function () { return \"walking\"; };\nfunction Student(firstName, subject) {\n  Person.call(this, firstName);\n  this.subject = subject;\n}\nStudent.prototype = Object.create(Person.prototype);\nStudent.prototype.constructor = Student;\nvar s = new Student(\"Janet\", \"Physics\");\nconsole.log(s.walk(), s.firstName, s instanceof Person);", "o": ["walking Janet true", "TypeError", "walking undefined true", "walking Janet false"], "a": 0, "h": "`Person.call(this, ...)` и `Object.create(Person.prototype)` прават две различни работи.", "e": "`Person.call(this, firstName)` го извршува родителскиот конструктор со `this` = новиот Student, па тој добива firstName. `Object.create(Person.prototype)` ги наследува методите (walk). Затоа s е instanceof и Student и Person.", "r": true}, {"t": "obj", "q": "Што се ES6 класите во JavaScript?", "c": null, "o": ["Syntactic sugar врз постоечкото prototype-based наследување", "Нов class-based модел, ист како во Java", "Замена која ги отстранува prototypes од јазикот", "Посебен primitive тип"], "a": 0, "h": "Под хаубата е сè уште истото.", "e": "`class` е поубава синтакса (syntactic sugar) за конструктор функции и prototype. JavaScript останува prototype-based јазик.", "r": false}, {"t": "obj", "q": "Што се случува?", "c": "class Polygon {\n  constructor(h, w) { this.h = h; this.w = w; }\n}\nclass Square extends Polygon {\n  constructor(len) {\n    this.len = len;\n    super(len, len);\n  }\n}\nnew Square(10);", "o": ["ReferenceError", "Нема грешка", "TypeError", "SyntaxError"], "a": 0, "h": "Во derived class, редоследот е важен.", "e": "Во конструктор на класа што прави `extends`, мора прво да се повика `super(...)`, па дури потоа да се користи `this`. Инаку се фрла ReferenceError.", "r": true}, {"t": "obj", "q": "Што ќе се испечати?", "c": "class Repo {\n  static getName() { return \"Repo\"; }\n}\nconsole.log(Repo.getName());\nconst r = new Repo();\nconsole.log(r.getName());", "o": ["Repo\nTypeError", "Repo\nRepo", "TypeError", "Repo\nundefined"], "a": 0, "h": "static методите припаѓаат на ... ?", "e": "static метод припаѓа на самата класа, не на инстанците. `Repo.getName()` работи, а `r.getName()` фрла TypeError: not a function. Од обичен метод се повикува со `Repo.getName()` или `this.constructor.getName()`.", "r": true}, {"t": "obj", "q": "Од ES2022, како се прави вистински private field во класа?", "c": null, "o": ["Со префикс `#`, пр. `#balance`", "Со префикс `_`, пр. `_balance`", "Со клучниот збор `private balance`", "Не може, JavaScript нема private"], "a": 0, "h": "Едната опција е само конвенција за именување.", "e": "`#balance` е вистински private и не може да се пристапи однадвор. `_balance` е само договор помеѓу програмерите, технички е јавен. Пред ES2022 private се симулираше со closures.", "r": false}, {"t": "closure", "q": "Што е closure?", "c": null, "o": ["Функција заедно со scope-от во кој е креирана, која ги памети тие променливи и откако надворешната функција ќе заврши", "Функција што се брише од меморијата веднаш по извршувањето", "Начин да се заклучи објект за да не се менува", "Функција без `return`"], "a": 0, "h": "Inner функцијата и понатаму \"гледа\" во outer...", "e": "Closure е комбинација од функција и scope објектот каде е креирана. Garbage collector не го брише тој scope сè додека постои референца кон функцијата.", "r": false}, {"t": "closure", "q": "Што ќе се испечати?", "c": "function outer() {\n  let faculty = \"FINKI\";\n  function inner() {\n    console.log(`Welcome to ${faculty}!`);\n  }\n  return inner;\n}\nlet fn = outer();\nfn();", "o": ["Welcome to FINKI!", "Welcome to undefined!", "ReferenceError", "Welcome to ${faculty}!"], "a": 0, "h": "outer заврши, но дали faculty исчезна?", "e": "inner е вратена од outer и повикана подоцна, но сè уште има пристап до faculty преку closure.", "r": true}, {"t": "closure", "q": "Што ќе се испечати?", "c": "function makeAdder(a) {\n  return function (b) {\n    return a + b;\n  };\n}\nvar x = makeAdder(5);\nvar y = makeAdder(20);\nconsole.log(x(6), y(7));", "o": ["11 27", "11 13", "26 27", "NaN NaN"], "a": 0, "h": "Секој повик на makeAdder креира нов scope.", "e": "Секој повик на makeAdder креира нов scope објект: во едниот a = 5, во другиот a = 20. Затоа `x(6)` = 11, а `y(7)` = 27.", "r": true}, {"t": "closure", "q": "Што ќе се испечати?", "c": "function makeCounter() {\n  let count = 0;\n  return function () {\n    count++;\n    return count;\n  };\n}\nconst first = makeCounter();\nconst second = makeCounter();\nfirst();\nfirst();\nconsole.log(first(), second());", "o": ["3 1", "3 4", "1 1", "2 1"], "a": 0, "h": "Секој counter има свој count.", "e": "first и second имаат посебни closures, секој со свој count. first е повикан 3 пати (3), а second еднаш (1).", "r": true}, {"t": "closure", "q": "Што ќе се испечати?", "c": "function buildFunctions() {\n  var arr = [];\n  for (var i = 0; i \u003c 3; i++) {\n    arr.push(function () {\n      console.log(i);\n    });\n  }\n  return arr;\n}\nvar fs = buildFunctions();\nfs[0]();\nfs[1]();\nfs[2]();", "o": ["3\n3\n3", "0\n1\n2", "2\n2\n2", "undefined\nundefined\nundefined"], "a": 0, "h": "Функциите се повикуваат ДОЦНА, кога јамката веќе завршила.", "e": "Сите три функции ја гледаат ИСТАТА i (var е function scoped). Кога се повикуваат, јамката е завршена и i = 3.", "r": true}, {"t": "closure", "q": "Што ќе се испечати?", "c": "function buildFunctions2() {\n  var arr = [];\n  for (var i = 0; i \u003c 3; i++) {\n    arr.push(\n      (function (j) {\n        return function () {\n          console.log(j);\n        };\n      }(i))\n    );\n  }\n  return arr;\n}\nvar fs2 = buildFunctions2();\nfs2[0]();\nfs2[1]();\nfs2[2]();", "o": ["0\n1\n2", "3\n3\n3", "2\n2\n2", "0\n0\n0"], "a": 0, "h": "IIFE се извршува веднаш, во секоја итерација.", "e": "IIFE се извршува веднаш со тековното i и го \"заклучува\" како j во нов scope. Секоја вратена функција има свое j.", "r": true}, {"t": "closure", "q": "Ако во примерот со `buildFunctions` само `var i` го смениме во `let i`, што ќе се испечати?", "c": "var arr = [];\nfor (let i = 0; i \u003c 3; i++) {\n  arr.push(function () {\n    console.log(i);\n  });\n}\narr[0]();\narr[1]();\narr[2]();", "o": ["0\n1\n2", "3\n3\n3", "2\n2\n2", "ReferenceError"], "a": 0, "h": "let е block scoped, а телото на јамката е блок.", "e": "let креира нов binding на i за секоја итерација, па секоја функција памети своја i. Ова е модерната замена за IIFE трикот.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "var a = [\"dog\", \"cat\", \"hen\"];\na[100] = \"fox\";\nconsole.log(a.length, typeof a[90]);", "o": ["101 undefined", "4 undefined", "101 string", "4 object"], "a": 0, "h": "length е секогаш највисокиот индекс + 1.", "e": "`length` не е број на елементи, туку највисокиот индекс + 1. Непостоечки индекси враќаат undefined.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const a = [1, 2, 3, 4];\nconst last = a.pop();\nconst first = a.shift();\nconsole.log(first, last, a);", "o": ["1 4 [2, 3]", "4 1 [2, 3]", "1 4 [1, 2, 3, 4]", "1 4 [2, 3, 4]"], "a": 0, "h": "pop работи на крајот, shift на почетокот.", "e": "`pop()` го вади и враќа последниот (4), а `shift()` првиот (1). И двата ја менуваат низата. `push` додава на крај, `unshift` на почеток.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const a = [1, 2, 3, 4, 5];\nconst s = a.slice(1, 3);\nconsole.log(s, a.length);", "o": ["[2, 3] 5", "[2, 3, 4] 5", "[2, 3] 3", "[1, 2, 3] 5"], "a": 0, "h": "Крајниот индекс не е вклучен. Дали slice ја менува a?", "e": "`slice(start, end)` враќа нова под-низа од start до end (без end) и НЕ ја менува оригиналната низа.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const a = [1, 2, 3, 4, 5];\na.splice(1, 2, \"x\");\nconsole.log(a);", "o": ["[1, \"x\", 4, 5]", "[1, \"x\", 2, 3, 4, 5]", "[1, 2, \"x\", 4, 5]", "[1, 2, 3, 4, 5]"], "a": 0, "h": "`splice(start, deleteCount, ...items)`", "e": "`splice(1, 2, \"x\")`: од индекс 1 брише 2 елементи (2 и 3) и на нивно место става \"x\". За разлика од slice, splice ја менува низата.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const prices = [30, 8, 120, 15];\nprices.sort();\nconsole.log(prices);", "o": ["[120, 15, 30, 8]", "[8, 15, 30, 120]", "[120, 30, 15, 8]", "[30, 8, 120, 15]"], "a": 0, "h": "Без comparator, sort ги споредува како strings.", "e": "Без comparator, `sort()` ги претвора елементите во strings и ги споредува знак по знак (\"120\" \u003c \"15\" \u003c \"30\" \u003c \"8\"). За броеви користи `(a, b) => a - b`.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const prices = [30, 8, 120, 15];\nconst desc = [...prices].sort((a, b) => b - a);\nconsole.log(desc, prices);", "o": ["[120, 30, 15, 8] [30, 8, 120, 15]", "[120, 30, 15, 8] [120, 30, 15, 8]", "[8, 15, 30, 120] [30, 8, 120, 15]", "[8, 15, 30, 120] [8, 15, 30, 120]"], "a": 0, "h": "Што прави `[...prices]` пред sort?", "e": "`sort()` ја менува низата на која е повикан, па прво правиме копија со spread `[...prices]`. `b - a` сортира descending, а `a - b` ascending.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const result = [1, 2, 3].forEach(n => n * 2);\nconsole.log(result);", "o": ["undefined", "[2, 4, 6]", "[1, 2, 3]", "6"], "a": 0, "h": "Кој метод враќа нова низа, а кој ништо?", "e": "`forEach()` само извршува callback за секој елемент и секогаш враќа undefined. За нова низа со трансформирани вредности користи `map()`.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const numbers = [1, 2, 3, 4, 5];\nconst even = numbers.filter(n => n % 2 === 0);\nconst doubled = even.map(n => n * 2);\nconsole.log(even, doubled, numbers.length);", "o": ["[2, 4] [4, 8] 5", "[2, 4] [4, 8] 2", "[2, 4] [2, 4, 6, 8, 10] 5", "[1, 3, 5] [2, 6, 10] 5"], "a": 0, "h": "filter чува, map трансформира. Се менува ли numbers?", "e": "`filter` ги чува елементите за кои callback враќа true, а `map` прави нова вредност за секој елемент. Ниту еден од нив не ја менува оригиналната низа.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const students = [\n  { name: \"Nick\", grade: 10 },\n  { name: \"John\", grade: 15 },\n  { name: \"Julia\", grade: 19 },\n  { name: \"Nathalie\", grade: 9 }\n];\nconst aboveTenSum = students\n  .map(s => s.grade)\n  .filter(g => g >= 10)\n  .reduce((prev, next) => prev + next, 0);\nconsole.log(aboveTenSum);", "o": ["44", "34", "53", "[10, 15, 19]"], "a": 0, "h": "Овој пат е `>=`, а не `>`.", "e": "map: [10, 15, 19, 9], filter (>= 10): [10, 15, 19], reduce: 0 + 10 + 15 + 19 = 44. Со `> 10` би било 34.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const products = [\n  { name: \"Keyboard\", qty: 2, inStock: true },\n  { name: \"Mouse\", qty: 1, inStock: false },\n  { name: \"Monitor\", qty: 1, inStock: true },\n  { name: \"Headphones\", qty: 3, inStock: true },\n  { name: \"USB Cable\", qty: 5, inStock: false }\n];\nconst total = products\n  .filter(p => p.inStock)\n  .reduce((sum, p) => sum + p.qty, 0);\nconsole.log(total);", "o": ["6", "12", "3", "7"], "a": 0, "h": "Прво се тргаат тие што не се на залиха.", "e": "filter ги чува Keyboard (2), Monitor (1) и Headphones (3). reduce: 0 + 2 + 1 + 3 = 6. Почетната вредност `0` е вториот аргумент на reduce.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const users = [\n  { name: \"Mila\", email: \"mila@example.com\" },\n  { name: \"Ana\", email: \"ana@example.com\" },\n  { name: \"Marko\", email: \"marko@example.com\" },\n  { name: \"Ana\", email: \"ana@example.com\" }\n];\nconst emails = [];\nconst unique = [];\nusers.forEach(user => {\n  if (!emails.includes(user.email)) {\n    unique.push(user);\n  }\n  emails.push(user.email);\n});\nconsole.log(unique.map(u => u.name).sort().join(\",\"));", "o": ["Ana,Marko,Mila", "Mila,Ana,Marko", "Ana,Ana,Marko,Mila", "[\"Ana\", \"Marko\", \"Mila\"]"], "a": 0, "h": "includes проверува дали email-от веќе е виден.", "e": "Вториот \"Ana\" се прескокнува бидејќи email-от веќе е во emails. map ги зема имињата, sort ги подредува азбучно, а `join(\",\")` ги спојува во еден string.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "const paid = [\n  { customer: \"Ana\", total: 40 },\n  { customer: \"Ana\", total: 30 },\n  { customer: \"Mila\", total: 60 },\n  { customer: \"Marko\", total: 15 }\n];\nconst byCustomer = paid.reduce((totals, o) => {\n  totals[o.customer] = (totals[o.customer] ?? 0) + o.total;\n  return totals;\n}, {});\nconsole.log(byCustomer.Ana, byCustomer.Marko);", "o": ["70 15", "30 15", "40 15", "NaN 15"], "a": 0, "h": "Почетната вредност на акумулаторот е `{}`.", "e": "Акумулаторот е објект. За секоја нарачка, `totals[o.customer] ?? 0` го дава досегашниот збир (или 0 првиот пат) и на него се додава total. Ana: 40 + 30 = 70.", "r": true}, {"t": "arr", "q": "Што ќе се испечати?", "c": "console.log(0 ?? 5, 0 || 5, null ?? 5);", "o": ["0 5 5", "5 5 5", "0 0 5", "0 5 null"], "a": 0, "h": "`??` реагира само на null и undefined.", "e": "`??` (nullish coalescing) ја враќа десната страна само кога левата е `null` или `undefined`. `||` реагира на секоја falsy вредност, вклучително 0. Затоа во Example 5 се користи `??`.", "r": true}, {"t": "es6", "q": "Што ќе се испечати?", "c": "const getPerson = () => ({ name: \"Nick\" });\nconst bad = () => { name: \"Nick\" };\nconsole.log(getPerson().name, bad());", "o": ["Nick undefined", "Nick Nick", "Nick { name: \"Nick\" }", "SyntaxError"], "a": 0, "h": "Кога `{` значи објект, а кога блок?", "e": "Без загради, `{ name: \"Nick\" }` се чита како блок код, не како објект, и нема return. За implicit return на објект, стави го во `( )`.", "r": true}, {"t": "es6", "q": "Кој од овие arrow functions е НЕВАЛИДНА синтакса?", "c": null, "o": ["`=> { return 2; }`", "`x => x * 2`", "`(a, b) => a + b`", "`() => 42`"], "a": 0, "h": "Што ако нема ниту еден параметар?", "e": "Заградите може да се изостават само кога има точно еден параметар. Без параметри мора `()`.", "r": false}, {"t": "es6", "q": "Што ќе се испечати?", "c": "const person = { firstName: \"Nick\", age: 35 };\nconst { firstName: first, age, city = \"Paris\" } = person;\nconsole.log(first, age, city);", "o": ["Nick 35 Paris", "Nick 35 undefined", "undefined 35 Paris", "ReferenceError"], "a": 0, "h": "`firstName: first` значи преименување.", "e": "`firstName: first` ја зема `person.firstName` и ја става во нова променлива first. `city = \"Paris\"` е default вредност, бидејќи `person.city` е undefined.", "r": true}, {"t": "es6", "q": "Што ќе се испечати?", "c": "const person = { firstName: \"Nick\" };\nconst { firstName: first } = person;\nconsole.log(firstName);", "o": ["ReferenceError", "Nick", "undefined", "first"], "a": 0, "h": "Кое име всушност е креирано?", "e": "Со `firstName: first` се креира САМО променливата first. Променлива firstName не постои, па се фрла ReferenceError.", "r": true}, {"t": "es6", "q": "Што ќе се испечати?", "c": "const [x, y] = [\"a\", \"b\", \"c\"];\nconsole.log(x, y);", "o": ["a b", "a c", "[\"a\", \"b\"] undefined", "b c"], "a": 0, "h": "Array destructuring оди по позиција.", "e": "Елементите се земаат по редослед: x добива индекс 0, y индекс 1. \"c\" едноставно се игнорира.", "r": true}, {"t": "es6", "q": "Што ќе се испечати?", "c": "const arr1 = [\"a\", \"b\"];\nconst arr2 = [arr1, \"c\"];\nconst arr3 = [...arr1, \"c\"];\nconsole.log(arr2.length, arr3.length);", "o": ["2 3", "3 3", "2 2", "3 2"], "a": 0, "h": "Без `...`, arr1 влегува како една целина.", "e": "arr2 е `[[\"a\", \"b\"], \"c\"]`, низата влегува како еден елемент. Spread `...arr1` ги \"истура\" елементите поединечно, па arr3 е `[\"a\", \"b\", \"c\"]`.", "r": true}, {"t": "es6", "q": "Што ќе се испечати?", "c": "const { x, ...z } = { x: 1, y: 2, a: 3 };\nconsole.log(x, z);", "o": ["1 { y: 2, a: 3 }", "1 { x: 1, y: 2, a: 3 }", "1 [2, 3]", "{ x: 1 } { y: 2, a: 3 }"], "a": 0, "h": "`...z` ги собира сите properties што не се извадени.", "e": "x се вади посебно, а rest `...z` создава нов објект со сите останати properties.", "r": true}, {"t": "es6", "q": "Што ќе се испечати?", "c": "function createStudent(firstName, ...grades) {\n  return grades.reduce((acc, g) => acc + g, 0) / grades.length;\n}\nconsole.log(createStudent(\"Nick\", 10, 12, 8));", "o": ["10", "30", "NaN", "7.5"], "a": 0, "h": "Колку елементи има grades?", "e": "firstName = \"Nick\", а `...grades` е `[10, 12, 8]`. Збирот е 30, поделен со 3 дава 10.", "r": true}, {"t": "async", "q": "Кои се трите состојби на Promise?", "c": null, "o": ["Pending, Fulfilled, Rejected", "Start, Running, Done", "Waiting, Success, Error", "Open, Resolved, Closed"], "a": 0, "h": "Една е \"чека\", две се крајни.", "e": "Promise почнува во pending. Со `resolve` преминува во fulfilled (се извршува `.then`), а со `reject` во rejected (се извршува `.catch`).", "r": false}, {"t": "async", "q": "Што ќе се испечати?", "c": "console.log(\"1\");\nnew Promise(resolve => {\n  console.log(\"2\");\n  resolve();\n}).then(() => console.log(\"4\"));\nconsole.log(\"3\");", "o": ["1\n2\n3\n4", "1\n3\n2\n4", "1\n2\n4\n3", "1\n3\n4\n2"], "a": 0, "h": "Executor функцијата се извршува веднаш.", "e": "Executor функцијата на Promise се извршува веднаш (синхроно), па \"2\" е пред \"3\". Handler-от во `.then` се извршува асинхроно, откако ќе заврши тековниот код.", "r": true}, {"t": "async", "q": "Што ќе се испечати?", "c": "async function myFunc() {\n  return \"hello world\";\n}\nconst r = myFunc();\nconsole.log(r instanceof Promise);\nr.then(msg => console.log(msg));", "o": ["true\nhello world", "false\nhello world", "hello world\ntrue", "true\nundefined"], "a": 0, "h": "async функција секогаш враќа ...", "e": "async функција секогаш враќа Promise. Вратената вредност станува резултат на Promise-от, кој се чита со `.then` (или со `await`).", "r": true}, {"t": "async", "q": "Што ќе се испечати?", "c": "async function getUser() {\n  throw \"User not found !\";\n}\ngetUser()\n  .then(res => console.log(\"ok\", res))\n  .catch(err => console.log(\"error:\", err));", "o": ["error: User not found !", "ok User not found !", "ok undefined", "Uncaught error, програмата паѓа"], "a": 0, "h": "throw во async функција значи rejected Promise.", "e": "`throw` во async функција е исто како да вратиш rejected Promise, па се извршува `.catch`. Со async/await грешките се фаќаат со try/catch.", "r": true}, {"t": "async", "q": "Колку `export default` смее да има еден ES модул?", "c": null, "o": ["Само еден", "Неограничено", "По еден за секоја функција", "Ниту еден, постојат само named exports"], "a": 0, "h": "\"default\" значи главната вредност.", "e": "Модулот има најмногу еден default export (пр. `export default sum`) и тој се импортира со било кое име: `import sum from './sum.js'`. Named exports може да има многу и се импортираат со `{ }`.", "r": false}, {"t": "dom", "q": "Кој метод го враќа првиот елемент што одговара на CSS селектор, пр. `\"#search\"`?", "c": null, "o": ["`document.querySelector()`", "`document.createElement()`", "`element.appendChild()`", "`element.addEventListener()`"], "a": 0, "h": "\"Query\" значи барање.", "e": "`querySelector(\"#search\")` го наоѓа првиот елемент со id search. `createElement` креира нов елемент, `appendChild` го додава во DOM, а `addEventListener` слуша настани.", "r": false}, {"t": "dom", "q": "Во Example 6, кој event се слуша на search `\u003cinput>`, за листата да се ажурира додека корисникот пишува?", "c": null, "o": ["`input`", "`change`", "`submit`", "`load`"], "a": 0, "h": "Се активира на секој внесен знак.", "e": "`input` се активира при секоја промена додека пишуваш. За `\u003cselect>` во Example 6 се користи `change`, кој се активира кога ќе се избере нова опција.", "r": false}, {"t": "dom", "q": "Што ќе се испечати?", "c": "const query = \"  MoNiToR \".trim().toLowerCase();\nconsole.log(query, \"Monitor\".toLowerCase().includes(query));", "o": ["monitor true", "monitor false", "MoNiToR false", "MONITOR true"], "a": 0, "h": "`trim` ги брише празните места, `toLowerCase` прави сè со мали букви.", "e": "Во Example 6 search-от ги игнорира големите и малите букви и празните места: `trim()` ги брише празните места од почеток и крај, `toLowerCase()` прави сè мало, а `includes()` проверува дали текстот го содржи query.", "r": true}, {"t": "dom", "q": "Во `updateView()` од Example 6, зошто прво се повикува `list.replaceChildren()`?", "c": null, "o": ["За да се избришат старите `\u003cli>` пред да се додадат новите", "За да се сортира листата", "За да се додаде event listener", "За да се креира `\u003cul>` елементот"], "a": 0, "h": "updateView се повикува при секое пишување.", "e": "Без бришење, секое пишување би додавало уште `\u003cli>` под старите. `replaceChildren()` без аргументи ги отстранува сите деца, па се прикажуваат само тековните резултати.", "r": false}, {"t": "dom", "q": "Зошто во Example 6 `\u003cscript>` се става ПОСЛЕ HTML елементите?", "c": null, "o": ["За елементите да постојат кога `querySelector` ќе ги бара", "За CSS да се вчита побрзо", "Затоа што `\u003cscript>` не смее да биде во `\u003chead>`", "За да работи `reduce`"], "a": 0, "h": "Што би вратил querySelector ако елементот уште не е парсиран?", "e": "Browser-от го парсира HTML одозгора надолу. Ако скриптата е пред елементите, `querySelector` враќа `null` и `addEventListener` фрла грешка.", "r": false}];
+QUESTIONS.forEach((q, i) => { q.id = i; });
+
+const TOPICS = [
+  ["basics", "Основи и типови"],
+  ["ops", "Оператори и coercion"],
+  ["flow", "Truthy/falsy, услови, јамки"],
+  ["scope", "Scope, hoisting, execution context"],
+  ["func", "Функции"],
+  ["this", "this, call, bind"],
+  ["obj", "Објекти, прототипи, класи"],
+  ["closure", "Closures"],
+  ["arr", "Низи и array методи"],
+  ["es6", "ES6+: arrow, destructuring, spread"],
+  ["async", "Promises, async, modules"],
+  ["dom", "DOM"]
+];
+const TOPIC_NAME = Object.fromEntries(TOPICS);
+const KEYS = ["A", "B", "C", "D"];
+const OK_WORDS = ["Точно.", "Така е.", "Браво, точно.", "Точно, одлично."];
+const NO_WORDS = ["Не баш.", "Блиску, но не.", "Не е тоа.", "Овој пат не."];
+const STORE_KEY = "js-reintro-quiz-v1";
+
+/* ---------- storage (best effort) ---------- */
+function loadStore() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveStore(s) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch (e) { /* storage unavailable */ }
+}
+
+/* ---------- helpers ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const rich = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+const KW = new Set("var let const function return if else for while do switch case break continue default new class extends super static this typeof instanceof async await throw try catch of in null undefined true false get yield".split(" "));
+function highlight(code) {
+  const re = /(\/\/[^\n]*)|(`(?:\\.|[^`\\])*`|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")|\b(\d+(?:\.\d+)?n?)\b|([A-Za-z_$][\w$]*)/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(code))) {
+    out += esc(code.slice(last, m.index));
+    if (m[1]) out += '<span class="tk-c">' + esc(m[1]) + "</span>";
+    else if (m[2]) out += '<span class="tk-s">' + esc(m[2]) + "</span>";
+    else if (m[3]) out += '<span class="tk-n">' + esc(m[3]) + "</span>";
+    else {
+      const w = m[4];
+      if (KW.has(w)) out += '<span class="tk-k">' + w + "</span>";
+      else if (code[re.lastIndex] === "(") out += '<span class="tk-f">' + esc(w) + "</span>";
+      else out += esc(w);
+    }
+    last = re.lastIndex;
+  }
+  out += esc(code.slice(last));
+  return out.split("\n").map(l => '<span class="ln">' + (l || " ") + "</span>").join("");
+}
+function codeBlock(code) {
+  return '<div class="code"><div class="code-head"><span>script.js</span><span>JavaScript</span></div><pre><code>' + highlight(code) + "</code></pre></div>";
+}
+function optText(q, i) {
+  const t = q.o[i];
+  return q.r ? '<span class="txt mono">' + esc(t) + "</span>" : '<span class="txt">' + rich(t) + "</span>";
+}
+
+/* ---------- state ---------- */
+let state;
+function freshState() {
+  const store = loadStore();
+  return {
+    view: "setup",
+    topics: TOPICS.map(t => t[0]),
+    count: 25,
+    shuffle: true,
+    order: [],
+    idx: 0,
+    perm: {},
+    ans: {},
+    hint: {},
+    label: "",
+    lastWrongSaved: (store.wrong || []).length
+  };
+}
+
+function questionPool() {
+  return QUESTIONS.filter(q => state.topics.includes(q.t));
+}
+function startQuiz(ids, label) {
+  state.order = ids;
+  state.idx = 0;
+  state.perm = {};
+  state.ans = {};
+  state.hint = {};
+  state.label = label || "";
+  state.view = "quiz";
+  render();
+  window.scrollTo({ top: 0 });
+}
+function startFromSetup() {
+  let pool = questionPool().map(q => q.id);
+  if (state.shuffle) pool = shuffle(pool);
+  const n = state.count === "all" ? pool.length : Math.min(state.count, pool.length);
+  startQuiz(pool.slice(0, n));
+}
+function current() { return QUESTIONS[state.order[state.idx]]; }
+function permFor(q) {
+  if (!state.perm[q.id]) state.perm[q.id] = shuffle([0, 1, 2, 3]);
+  return state.perm[q.id];
+}
+function pick(origIndex) {
+  const q = current();
+  if (state.ans[q.id]) return;
+  state.ans[q.id] = { pick: origIndex, ok: origIndex === q.a };
+  render();
+  const next = document.getElementById("next-btn");
+  if (next) next.focus({ preventScroll: true });
+}
+function finish() {
+  const store = loadStore();
+  const wrong = new Set(store.wrong || []);
+  let ok = 0, total = 0;
+  for (const id of state.order) {
+    const a = state.ans[id];
+    if (!a) continue;
+    total++;
+    if (a.ok) { ok++; wrong.delete(id); } else wrong.add(id);
+  }
+  store.wrong = [...wrong];
+  if (total) store.last = { ok, total };
+  saveStore(store);
+  state.lastWrongSaved = store.wrong.length;
+  state.view = "results";
+  render();
+  window.scrollTo({ top: 0 });
+}
+function next() {
+  if (state.idx < state.order.length - 1) {
+    state.idx++;
+    render();
+    window.scrollTo({ top: 0 });
+  } else {
+    finish();
+  }
+}
+
+/* ---------- views ---------- */
+function renderSetup() {
+  const store = loadStore();
+  const poolSize = questionPool().length;
+  const n = state.count === "all" ? poolSize : Math.min(state.count, poolSize);
+  const counts = {};
+  QUESTIONS.forEach(q => { counts[q.t] = (counts[q.t] || 0) + 1; });
+  const topicBtns = TOPICS.map(([k, name]) =>
+    '<button type="button" class="topic" id="topic-' + k + '" data-topic="' + k + '" aria-pressed="' + state.topics.includes(k) + '">' +
+    "<span>" + esc(name) + '</span><span class="n">' + counts[k] + "</span></button>"
+  ).join("");
+  const sizes = [10, 25, 50, "all"].map(s =>
+    '<button type="button" class="seg" id="count-' + s + '" data-count="' + s + '" aria-pressed="' + (state.count === s) + '">' +
+    (s === "all" ? "Сите (" + poolSize + ")" : s) + "</button>"
+  ).join("");
+  const wrongN = (store.wrong || []).length;
+  const last = store.last ? '<p class="note">Последен резултат: ' + store.last.ok + " / " + store.last.total + " (" + Math.round(store.last.ok / store.last.total * 100) + "%)</p>" : "";
+  return '<section class="panel">' +
+    '<p class="lede">Секое прашање има <b>совет</b> (ако заглавиш) и <b>објаснување</b> по одговорот. Прашањата со жолта ознака <span class="chip out">output</span> бараат да погодиш што ќе испечати кодот.</p>' +
+    "<div><p class=\"label\">Теми</p><div class=\"topic-grid\">" + topicBtns + "</div>" +
+    '<div class="row" style="margin-top:10px"><button type="button" class="mini-link" id="all-topics">Избери ги сите</button><button type="button" class="mini-link" id="no-topics">Тргни ги сите</button></div></div>' +
+    '<div><p class="label">Број на прашања</p><div class="row">' + sizes + "</div></div>" +
+    '<label class="check" for="shuffle"><input type="checkbox" id="shuffle"' + (state.shuffle ? " checked" : "") + "> Измешај го редоследот на прашањата</label>" +
+    '<div class="actions"><div class="left">' +
+    '<button type="button" class="primary" id="start-btn"' + (n ? "" : " disabled") + ">" + (n ? "Почни, " + n + " прашања" : "Избери барем една тема") + "</button>" +
+    (wrongN ? '<button type="button" class="secondary" id="saved-wrong-btn">Вежбај ги погрешните (' + wrongN + ")</button>" : "") +
+    "</div></div>" + last +
+    "</section>";
+}
+
+function renderQuiz() {
+  const q = current();
+  const perm = permFor(q);
+  const a = state.ans[q.id];
+  const total = state.order.length;
+  let okN = 0, noN = 0;
+  const segs = state.order.map((id, i) => {
+    const x = state.ans[id];
+    if (x) { x.ok ? okN++ : noN++; }
+    const cls = x ? (x.ok ? "ok" : "no") : (i === state.idx ? "now" : "");
+    return '<span class="' + cls + '"></span>';
+  }).join("");
+  const opts = perm.map((orig, pos) => {
+    let cls = "opt", mark = "";
+    if (a) {
+      if (orig === q.a) { cls += " right"; mark = '<span class="mark">✓ Точен</span>'; }
+      else if (orig === a.pick) { cls += " wrong"; mark = '<span class="mark">✗ Твој одговор</span>'; }
+      else cls += " dim";
+    }
+    return '<button type="button" class="' + cls + '" id="opt-' + pos + '" data-pick="' + orig + '"' + (a ? " disabled" : "") + ">" +
+      '<span class="key">' + KEYS[pos] + "</span>" + optText(q, orig) + mark + "</button>";
+  }).join("");
+  const hint = state.hint[q.id] && !a ? '<div class="hint"><b>Совет</b>' + rich(q.h) + "</div>" : "";
+  const fb = a ? '<div class="feedback ' + (a.ok ? "ok" : "no") + '"><span class="verdict">' +
+    (a.ok ? OK_WORDS[q.id % OK_WORDS.length] : NO_WORDS[q.id % NO_WORDS.length]) + "</span><p>" + rich(q.e) + "</p></div>" : "";
+  const isLast = state.idx === total - 1;
+  return '<header class="qbar">' +
+      '<div class="qcount"><b>' + String(state.idx + 1).padStart(2, "0") + "</b>/ " + total + "</div>" +
+      '<div class="track" aria-hidden="true">' + segs + "</div>" +
+      '<div class="tally"><span class="g">' + okN + ' точни</span><span class="b">' + noN + " грешни</span></div>" +
+    "</header>" +
+    '<article class="panel">' +
+      '<div class="meta"><span class="chip">' + esc(TOPIC_NAME[q.t]) + "</span>" + (q.r ? '<span class="chip out">output</span>' : "") +
+      (state.label ? '<span class="chip">' + esc(state.label) + "</span>" : "") + "</div>" +
+      '<h2 class="qtext">' + rich(q.q) + "</h2>" +
+      (q.c ? codeBlock(q.c) : "") +
+      '<div class="opts">' + opts + "</div>" +
+      hint + fb +
+      '<div class="actions"><div class="left">' +
+        (a ? '<button type="button" class="primary" id="next-btn">' + (isLast ? "Види резултат" : "Следно прашање") + "</button>"
+           : '<button type="button" class="secondary" id="hint-btn"' + (state.hint[q.id] ? " disabled" : "") + ">Совет</button>") +
+        '<button type="button" class="mini-link" id="finish-btn">Заврши сега</button>' +
+      "</div>" +
+      '<span class="kbd-help">' + (a ? "Enter = следно" : "1-4 или A-D = одговор, H = совет") + "</span>" +
+      "</div>" +
+    "</article>";
+}
+
+function renderResults() {
+  const answered = state.order.filter(id => state.ans[id]);
+  const ok = answered.filter(id => state.ans[id].ok).length;
+  const total = answered.length;
+  const pct = total ? Math.round(ok / total * 100) : 0;
+  const line = !total ? "Не одговори ниту едно прашање."
+    : pct >= 90 ? "Одлично, ова го знаеш."
+    : pct >= 70 ? "Солидно. Помини ги грешките подолу и пробај пак."
+    : pct >= 50 ? "Половина е тука. Грешките подолу се тоа што треба да се повтори."
+    : "Почеток. Прочитај ги објаснувањата и повтори ги грешките.";
+  const per = {};
+  answered.forEach(id => {
+    const t = QUESTIONS[id].t;
+    per[t] = per[t] || { ok: 0, n: 0 };
+    per[t].n++;
+    if (state.ans[id].ok) per[t].ok++;
+  });
+  const bars = TOPICS.filter(([k]) => per[k]).map(([k, name]) => {
+    const p = per[k].ok / per[k].n;
+    const cls = p >= 0.75 ? "" : p >= 0.5 ? "mid" : "low";
+    return '<div class="bar-row"><span>' + esc(name) + '</span><div class="bar"><i class="' + cls + '" style="width:' + Math.round(p * 100) + '%"></i></div><span class="v">' + per[k].ok + "/" + per[k].n + "</span></div>";
+  }).join("");
+  const wrongIds = answered.filter(id => !state.ans[id].ok);
+  const fmtAns = (q, i) => q.r ? "<pre>" + esc(q.o[i]) + "</pre>" : "<span>" + rich(q.o[i]) + "</span>";
+  const mistakes = wrongIds.map((id, n) => {
+    const q = QUESTIONS[id];
+    return "<details" + (n === 0 ? " open" : "") + '><summary><span class="num">' + String(n + 1).padStart(2, "0") + "</span><span>" + rich(q.q) + "</span></summary>" +
+      '<div class="body">' + (q.c ? codeBlock(q.c) : "") +
+      '<div class="ans-line your"><span class="k">Твој одговор</span>' + fmtAns(q, state.ans[id].pick) + "</div>" +
+      '<div class="ans-line corr"><span class="k">Точен одговор</span>' + fmtAns(q, q.a) + "</div>" +
+      "<p style=\"margin:0\">" + rich(q.e) + "</p></div></details>";
+  }).join("");
+  return '<section class="panel">' +
+      '<div class="score"><span class="pct">' + pct + '%</span><span class="of">' + ok + " од " + total + " точни</span></div>" +
+      '<p class="verdict-line">' + line + "</p>" +
+      (bars ? '<div><p class="label">По тема</p><div class="bars">' + bars + "</div></div>" : "") +
+      '<div class="actions"><div class="left">' +
+        (wrongIds.length ? '<button type="button" class="primary" id="retry-btn">Повтори ги грешките (' + wrongIds.length + ")</button>" : "") +
+        '<button type="button" class="secondary" id="new-btn">Нов квиз</button>' +
+      "</div></div>" +
+    "</section>" +
+    (total ? '<section class="panel"><p class="label" style="margin:0">Грешки за повторување</p>' +
+      (wrongIds.length ? '<div class="mistakes">' + mistakes + "</div>" : '<p class="empty-ok">Нема грешки. Сè точно!</p>') +
+    "</section>" : "");
+}
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = state.view === "quiz" ? renderQuiz() : state.view === "results" ? renderResults() : renderSetup();
+  document.getElementById("home-btn").hidden = state.view === "setup";
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("button, input");
+  if (!t) return;
+  if (t.id === "home-btn" || t.id === "new-btn") {
+    const keep = { topics: state.topics, count: state.count, shuffle: state.shuffle };
+    state = Object.assign(freshState(), keep);
+    render();
+    return;
+  }
+  if (state.view === "setup") {
+    if (t.dataset.topic) {
+      const k = t.dataset.topic;
+      state.topics = state.topics.includes(k) ? state.topics.filter(x => x !== k) : state.topics.concat(k);
+      render();
+      document.getElementById("topic-" + k).focus();
+    } else if (t.dataset.count) {
+      state.count = t.dataset.count === "all" ? "all" : Number(t.dataset.count);
+      render();
+      document.getElementById("count-" + t.dataset.count).focus();
+    } else if (t.id === "all-topics") { state.topics = TOPICS.map(x => x[0]); render(); }
+    else if (t.id === "no-topics") { state.topics = []; render(); }
+    else if (t.id === "shuffle") { state.shuffle = t.checked; }
+    else if (t.id === "start-btn") startFromSetup();
+    else if (t.id === "saved-wrong-btn") {
+      const ids = (loadStore().wrong || []).filter(id => QUESTIONS[id]);
+      startQuiz(shuffle(ids), "погрешни од минатото");
+    }
+    return;
+  }
+  if (state.view === "quiz") {
+    if (t.dataset.pick !== undefined) pick(Number(t.dataset.pick));
+    else if (t.id === "hint-btn") { state.hint[current().id] = true; render(); }
+    else if (t.id === "next-btn") next();
+    else if (t.id === "finish-btn") finish();
+    return;
+  }
+  if (state.view === "results" && t.id === "retry-btn") {
+    const ids = state.order.filter(id => state.ans[id] && !state.ans[id].ok);
+    startQuiz(shuffle(ids), "повторување");
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (state.view !== "quiz" || e.metaKey || e.ctrlKey || e.altKey) return;
+  const q = current();
+  const answered = !!state.ans[q.id];
+  const map = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Numpad1: 0, Numpad2: 1, Numpad3: 2, Numpad4: 3, KeyA: 0, KeyB: 1, KeyC: 2, KeyD: 3 };
+  if (!answered && e.code in map) {
+    e.preventDefault();
+    pick(permFor(q)[map[e.code]]);
+  } else if (!answered && e.code === "KeyH") {
+    state.hint[q.id] = true;
+    render();
+  } else if (answered && e.code === "Enter") {
+    e.preventDefault();
+    next();
+  }
+});
+
+/* ---------- boot (keeps quiz state across a republish) ---------- */
+function start(saved) {
+  state = Object.assign(freshState(), saved && saved.view ? saved : {});
+  render();
+}
+window.claude?.hot?.snapshot?.(() => state);
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
